@@ -42,9 +42,9 @@ example `claude/claude-opus-5`.
 
 ## Permissions
 
-The package requests exactly what it calls: `net` for the token endpoint at
-`platform.claude.com` and the API at `api.anthropic.com`, and `run` to call
-`openssl` for the login PKCE pair.
+The package requests exactly what it calls: `net` for the API and the token
+endpoint at `api.anthropic.com`, and `run` to call `openssl` for the login PKCE
+pair.
 
 ## Development
 

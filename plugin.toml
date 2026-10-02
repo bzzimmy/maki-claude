@@ -5,4 +5,4 @@ min_maki_version = "0.5.7"
 [permissions]
 net = true
 run = true
-net_hosts = ["api.anthropic.com", "platform.claude.com"]
+net_hosts = ["api.anthropic.com"]

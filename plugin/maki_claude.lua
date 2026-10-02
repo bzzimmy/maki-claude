@@ -7,15 +7,17 @@ local DISPLAY_NAME = "Claude subscription"
 local IDENTITY = "You are Claude Code, Anthropic's official CLI for Claude."
 local CLIENT_ID = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
 local AUTHORIZE_URL = "https://claude.ai/oauth/authorize"
-local TOKEN_URL = "https://platform.claude.com/v1/oauth/token"
+-- The provider origin: maki.net sends a browser user agent anywhere else, which
+-- the token endpoint answers with a 429.
+local TOKEN_URL = "https://api.anthropic.com/v1/oauth/token"
 local REDIRECT_URI = "https://platform.claude.com/oauth/code/callback"
 local SCOPES =
   "org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload"
-local USER_AGENT = "claude-cli/2.1.251 (external, cli)"
 local REFRESH_MARGIN_S = 300
 local PKCE_WAIT_MS = 10000
 -- Prints a random verifier, then its S256 challenge in standard base64.
-local PKCE_SCRIPT = 'v=$(openssl rand -hex 32) && echo "$v" && printf %s "$v" | openssl dgst -sha256 -binary | openssl base64 -A'
+local PKCE_SCRIPT =
+  'v=$(openssl rand -hex 32) && echo "$v" && printf %s "$v" | openssl dgst -sha256 -binary | openssl base64 -A'
 local NOT_LOGGED_IN = "not logged in to Claude: run `maki auth login claude`"
 
 local function urlencode(value)
@@ -42,7 +44,7 @@ end
 local function grant(slug, body, previous)
   local res, err = maki.net.request(TOKEN_URL, {
     method = "POST",
-    headers = { ["content-type"] = "application/json", accept = "application/json", ["user-agent"] = USER_AGENT },
+    headers = { ["content-type"] = "application/json", accept = "application/json" },
     body = maki.json.encode(body),
   })
   if not res then
@@ -78,11 +80,8 @@ local function auth(ctx, purpose)
   end
   if purpose == "refresh" or (purpose == "resolve" and creds.expires <= os.time() + REFRESH_MARGIN_S) then
     local res
-    creds, res = grant(
-      ctx.slug,
-      { grant_type = "refresh_token", client_id = CLIENT_ID, refresh_token = creds.refresh },
-      creds
-    )
+    creds, res =
+      grant(ctx.slug, { grant_type = "refresh_token", client_id = CLIENT_ID, refresh_token = creds.refresh }, creds)
     if not creds then
       return nil, maki.provider.http_error(res)
     end

@@ -12,7 +12,7 @@ const PLUGIN_NAME: &str = "maki-claude";
 const SLUG: &str = "claude";
 const DISPLAY_NAME: &str = "Claude subscription";
 const MODEL_SPEC: &str = "claude/claude-opus-5";
-const NET_HOSTS: [&str; 2] = ["api.anthropic.com", "platform.claude.com"];
+const NET_HOST: &str = "api.anthropic.com";
 const ACCESS: &str = "access-token";
 const FAR_FUTURE_S: u64 = 4102444800;
 const LOGIN_HINT: &str = "maki auth login claude";
@@ -33,7 +33,7 @@ fn plugin_host() -> PluginHost {
     }
     let host = PluginHost::new(Arc::new(ToolRegistry::new())).unwrap();
     let mut permissions = PluginPermissions::from_approved(["net", "run"]);
-    permissions.set_net_hosts(Some(Arc::from(NET_HOSTS.map(str::to_owned).to_vec())));
+    permissions.set_net_hosts(Some(Arc::from(vec![NET_HOST.to_owned()])));
     host.load_package(
         PLUGIN_NAME,
         Path::new(env!("CARGO_MANIFEST_DIR")),
