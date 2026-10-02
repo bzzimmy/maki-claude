@@ -1,51 +1,54 @@
-maki-claude puts a Claude subscription behind maki's dynamic provider mechanism.
-It loads through the maki pack system, not as a builtin. Two parts:
+maki-claude puts a Claude subscription behind a maki plugin provider. It loads
+through the maki pack system, not as a builtin. One file does the work:
 
-- `providers/claude`: a Python 3 script, the maki dynamic provider. OAuth
-  login, token storage, and refresh. Standard library only, one file, no
-  `.py` extension because maki runs it by name. `info` declares the Claude
-  Code identity line as the system prefix; that is the only thing the
-  subscription token requires of a request, verified against Opus, Sonnet,
-  and Fable with flat maki tool names and no extra headers.
-- `plugin/maki_claude.lua`: installs the script into the config `providers/`
-  directory and registers `/claude` for a status line. Keep it to that:
-  anything else the script can do is reachable through `maki auth`.
+- `plugin/maki_claude.lua`: one `maki.provider.register` call with `auth`,
+  `login` and `logout` hooks. It borrows the `anthropic` base, so the catalog
+  and the wire format are maki's. It declares the Claude Code identity line as
+  the system prefix; that is the only thing the subscription token requires of
+  a request, verified against Opus, Sonnet, and Fable with flat maki tool names
+  and no extra headers.
+
+Login is the Claude Code OAuth flow with the hosted callback page: the browser
+shows a code and the user pastes it. A Lua hook cannot listen on a port, so
+there is no loopback callback. maki stores the tokens through
+`maki.provider.auth`. Keep the plugin to the provider: no commands, no files of
+its own.
 
 ## Code guidelines
 
 - No trivial comments, minimal bloat, no unnecessary state.
-- Constants at the top of each file, in both languages.
-- Lua: fallible runtime operations return the `(value, err)` pair and never
-  throw. Setup at load logs and returns on the first failure instead of
-  failing the package.
-- Python: user-facing failures raise `Fail`; `main` prints them to stderr and
-  exits non-zero, which is how maki surfaces script errors.
-- `plugin.toml` grants exactly what the Lua calls. Keep it aligned by hand.
+- Constants at the top of the file.
+- Hooks fail the way maki expects: an HTTP failure in `auth` returns
+  `nil, maki.provider.http_error(res)` so maki retries it, and anything else
+  raises with `error`, which is the message the user reads.
+- `plugin.toml` grants exactly what the Lua calls, and `net_hosts` lists every
+  host it reaches. Keep it aligned by hand.
 
 ## Testing
 
 Cheapest first:
 
-- `just check` runs `cargo check --tests` and byte-compiles the script.
+- `just check` runs `cargo check --tests`.
 - `just lint`
-- `just test-py` runs the Python tests.
-- `just test` runs both suites; the Rust part needs `cargo-nextest`.
+- `just test` needs `cargo-nextest`.
 
 The Rust tests load the package through `PluginHost::load_package`, passing the
-repo root. Loading installs the script, so the test points `HOME` and the XDG
-variables at a temporary directory before creating the host. Assert
-Lua-visible effects: the registered command and the installed file.
+repo root, with the grants `plugin.toml` asks for. The provider registry and
+the environment are global, so each test needs a process of its own, which
+nextest gives it. The test points `HOME` and the XDG variables at a temporary
+directory before creating the host. Assert effects maki sees: the registered
+provider, its catalog, and what the `auth` hook resolves from stored
+credentials. `login` needs a browser and a terminal, so check it by hand.
 
 Dev-dependencies pin a revision of maki. Move the pin when the host changes
 what the plugin uses.
 
 ## Layout
 
-- `providers/claude`: the provider script.
 - `plugin/`: the Lua entry file.
 - `plugin.toml`: `min_maki_version` and the `[permissions]` request.
-- `tests/plugin.rs`: host harness. `tests/test_provider.py`: script tests.
-- `justfile`: check, lint, test, test-py, fmt-lua.
+- `tests/plugin.rs`: host harness.
+- `justfile`: check, lint, test, fmt-lua.
 
 ## Docs
 

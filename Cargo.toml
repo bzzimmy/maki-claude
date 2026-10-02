@@ -6,5 +6,9 @@ license = "MIT"
 publish = false
 
 [dev-dependencies]
-maki-agent = { git = "https://github.com/tontinton/maki", rev = "8819365a6f07d05cbd6192f2796a9f1adf20001a" }
-maki-lua = { git = "https://github.com/tontinton/maki", rev = "8819365a6f07d05cbd6192f2796a9f1adf20001a" }
+maki-agent = { git = "https://github.com/tontinton/maki", rev = "a7b1e412749db673088af34f83dae6cfb447fd43" }
+maki-lua = { git = "https://github.com/tontinton/maki", rev = "a7b1e412749db673088af34f83dae6cfb447fd43" }
+maki-providers = { git = "https://github.com/tontinton/maki", rev = "a7b1e412749db673088af34f83dae6cfb447fd43" }
+maki-storage = { git = "https://github.com/tontinton/maki", rev = "a7b1e412749db673088af34f83dae6cfb447fd43" }
+serde_json = "1"
+smol = "2"

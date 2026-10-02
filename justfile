@@ -3,16 +3,12 @@ default:
 
 check:
     cargo check --tests
-    python3 -m py_compile providers/claude
 
 lint:
     cargo clippy --tests -- -D warnings
 
-test: test-py
+test:
     cargo nextest run
-
-test-py:
-    python3 -m unittest discover -s tests -p 'test_*.py'
 
 fmt-lua:
     stylua plugin/

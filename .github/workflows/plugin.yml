@@ -39,15 +39,6 @@ jobs:
           rm stylua.zip
       - run: ./stylua --check plugin/
 
-  test-py:
-    name: Test (Python)
-    if: github.repository != 'lu-zero/maki-lua-plugin-template'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: python3 -m py_compile providers/claude
-      - run: python3 -m unittest discover -s tests -p 'test_*.py' -v
-
   lint:
     name: Lint
     if: github.repository != 'lu-zero/maki-lua-plugin-template'

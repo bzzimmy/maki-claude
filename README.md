@@ -8,8 +8,9 @@ provider's system prefix; nothing else about the request has to change.
 
 ## Requirements
 
-- maki 0.5.3 or newer
-- Python 3.8 or newer on `PATH` as `python3`
+- A maki build with plugin providers (`maki.provider.register`), which landed
+  after the 0.5.7 tag
+- `openssl` on `PATH`, used once per login
 - A Claude Pro or Max subscription
 - Linux or macOS
 
@@ -23,32 +24,27 @@ maki.pack.add({
 })
 ```
 
-Start maki once so the plugin installs the provider script to
-`~/.config/maki/providers/claude`, then restart after login so maki discovers
-it.
-
 ## Setup
 
 ```
 maki auth login claude
 ```
 
-Login opens the browser. If the browser is on another machine, paste the
-final redirect URL into the terminal. Tokens are stored in the maki state
-directory with mode 0600 and refresh on their own.
+Login opens the browser. Approve the request, copy the code the page shows,
+and paste it into the terminal. maki stores the tokens in its state directory
+with mode 0600 and the plugin refreshes them on its own.
 
 Pick a model with `/model`; the catalog is under the `claude/` prefix, for
 example `claude/claude-opus-5`.
 
-- `/claude` shows the login state and token expiry.
 - `maki auth logout claude` removes the stored tokens.
 - maki's own usage display shows the subscription quota.
 
 ## Permissions
 
-The package requests exactly what it calls: `fs_read` and `fs_write` to
-install the script, `run` to mark it executable and call it for `/claude`.
-Every request to Anthropic is made by maki itself.
+The package requests exactly what it calls: `net` for the token endpoint at
+`platform.claude.com` and the API at `api.anthropic.com`, and `run` to call
+`openssl` for the login PKCE pair.
 
 ## Development
 

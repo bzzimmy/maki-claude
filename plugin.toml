@@ -1,8 +1,8 @@
-min_maki_version = "0.5.3"
+min_maki_version = "0.5.7"
 
-# fs_read and fs_write install the provider script into the config directory,
-# run marks it executable and calls it for /claude.
+# net reaches the token endpoint and registers the provider, run calls openssl
+# for the login PKCE pair.
 [permissions]
-fs_read = true
-fs_write = true
+net = true
 run = true
+net_hosts = ["api.anthropic.com", "platform.claude.com"]
