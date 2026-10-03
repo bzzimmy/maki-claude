@@ -19,6 +19,9 @@ local PKCE_WAIT_MS = 10000
 local PKCE_SCRIPT =
   'v=$(openssl rand -hex 32) && echo "$v" && printf %s "$v" | openssl dgst -sha256 -binary | openssl base64 -A'
 local NOT_LOGGED_IN = "not logged in to Claude: run `maki auth login claude`"
+-- Claude Code sends this when the install is enrolled in a server-side
+-- experiment. Override with CLAUDE_ATIS, or set it to "off" to omit the header.
+local ATIS_DEFAULT = "d5ce23808f17634f"
 
 local function urlencode(value)
   return (value:gsub("[^%w%-_%.~]", function(c)
@@ -86,7 +89,12 @@ local function auth(ctx, purpose)
       return nil, maki.provider.http_error(res)
     end
   end
-  return { headers = { authorization = "Bearer " .. creds.access } }
+  local headers = { authorization = "Bearer " .. creds.access }
+  local atis = maki.uv.os_getenv("CLAUDE_ATIS") or ATIS_DEFAULT
+  if atis ~= "" and atis ~= "off" then
+    headers["x-cc-atis"] = atis
+  end
+  return { headers = headers }
 end
 
 local function login(ctx)
