@@ -133,10 +133,13 @@ local function list_models(ctx)
   for _, model in ipairs(data.data or {}) do
     local window = model.max_input_tokens or 0
     local long = window >= LONG_CONTEXT
+    local capabilities = model.capabilities or {}
     table.insert(rows, {
       id = long and (model.id .. LONG_CONTEXT_SUFFIX) or model.id,
       context_window = long and LONG_CONTEXT or (window > 0 and window or nil),
       max_output_tokens = model.max_tokens,
+      supports_thinking = (capabilities.thinking or {}).supported,
+      supports_vision = (capabilities.image_input or {}).supported,
     })
   end
   return rows
