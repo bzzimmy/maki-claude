@@ -2,6 +2,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use maki_agent::tools::ToolRegistry;
+use maki_lua::test_support::runtime;
 use maki_lua::{PluginHost, PluginPermissions};
 use maki_providers::{Timeouts, plugin};
 use maki_storage::StateDir;
@@ -11,11 +12,11 @@ use serde_json::json;
 const PLUGIN_NAME: &str = "maki-claude";
 const SLUG: &str = "claude";
 const DISPLAY_NAME: &str = "Claude subscription";
-const MODEL_SPEC: &str = "claude/claude-opus-5";
 const NET_HOST: &str = "api.anthropic.com";
 const ACCESS: &str = "access-token";
 const FAR_FUTURE_S: u64 = 4102444800;
 const LOGIN_HINT: &str = "maki auth login claude";
+const BROKEN_HOOK: &str = "hook failed";
 
 /// The provider registry and the environment are global, so every test leans
 /// on nextest running it in a process of its own.
@@ -46,10 +47,9 @@ fn plugin_host() -> PluginHost {
 }
 
 #[test]
-fn registers_a_login_provider_with_the_anthropic_catalog() {
+fn registers_a_login_provider() {
     let _host = plugin_host();
     assert!(plugin::auth_providers().contains(&(SLUG.to_owned(), DISPLAY_NAME.to_owned())));
-    assert!(plugin::plugin_model_specs_for(SLUG).contains(&MODEL_SPEC.to_owned()));
 }
 
 #[test]
@@ -64,7 +64,7 @@ fn a_stored_token_becomes_the_bearer_header() {
     .unwrap();
 
     let provider = plugin::create(SLUG, Timeouts::default()).unwrap();
-    smol::block_on(provider.reload_auth()).unwrap();
+    runtime().block_on(provider.reload_auth()).unwrap();
 
     let headers = plugin::resolved_auth(SLUG).unwrap().headers;
     assert!(
@@ -80,8 +80,10 @@ fn a_stored_token_becomes_the_bearer_header() {
 fn auth_without_a_login_names_the_login_command() {
     let _host = plugin_host();
     let failure = match plugin::create(SLUG, Timeouts::default()) {
-        Ok(provider) => smol::block_on(provider.reload_auth()).unwrap_err(),
+        Ok(provider) => runtime().block_on(provider.reload_auth()).unwrap_err(),
         Err(err) => err,
     };
-    assert!(failure.to_string().contains(LOGIN_HINT), "{failure}");
+    let message = failure.to_string();
+    assert!(message.contains(LOGIN_HINT), "{message}");
+    assert!(!message.contains(BROKEN_HOOK), "{message}");
 }

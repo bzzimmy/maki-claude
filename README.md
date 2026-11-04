@@ -8,8 +8,7 @@ provider's system prefix; nothing else about the request has to change.
 
 ## Requirements
 
-- A maki build with plugin providers (`maki.provider.register`), which landed
-  after the 0.5.7 tag
+- maki 0.7.0 or newer
 - `openssl` on `PATH`, used once per login
 - A Claude Pro or Max subscription
 - Linux or macOS
@@ -34,16 +33,17 @@ Login opens the browser. Approve the request, copy the code the page shows,
 and paste it into the terminal. maki stores the tokens in its state directory
 with mode 0600 and the plugin refreshes them on its own.
 
-Pick a model with `/model`; the catalog is under the `claude/` prefix, for
-example `claude/claude-opus-5`.
+Pick a model with `/model`. The list comes from your subscription at runtime,
+under the `claude/` prefix. Like Claude Code, a model with a 1M context window
+is offered only with it, for example `claude/claude-opus-5-5-1m`.
 
 - `maki auth logout claude` removes the stored tokens.
 - maki's own usage display shows the subscription quota.
 
 ## Permissions
 
-The package requests exactly what it calls: `net` for the API and the token
-endpoint at `api.anthropic.com`, and `run` to call `openssl` for the login PKCE
+The package requests exactly what it calls: `net` for the API, the model list, and the
+token endpoint at `api.anthropic.com`, and `run` to call `openssl` for the login PKCE
 pair.
 
 ## Development

@@ -1,6 +1,7 @@
-min_maki_version = "0.5.7"
+min_maki_version = "0.7.0"
+providers = ["claude"]
 
-# net reaches the token endpoint and registers the provider, run calls openssl
+# net reaches the API, the model list and the token endpoint, run calls openssl
 # for the login PKCE pair, env reads the CLAUDE_ATIS override.
 [permissions]
 net = true
